@@ -37,13 +37,11 @@ jobs:
 
   zizmor:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           persist-credentials: false
-      # Run the CLI rather than the action: SARIF upload needs code scanning
-      # (GitHub Advanced Security), which this public repo may not have enabled.
-      - run: pipx install zizmor==1.26.1
-      - run: zizmor .github/workflows/
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: zizmorcore/zizmor-action@6599ee8b7a49aef6a770f63d261d214911a7ce02  # v0.6.0
