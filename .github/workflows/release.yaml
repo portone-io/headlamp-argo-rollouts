@@ -1,15 +1,23 @@
 ---
-name: Release
+# Called by release-please (see release-please.yaml) after it creates a release
+# and tag. Builds the plugin tarball at that tag and attaches it to the release,
+# then appends the tarball's SHA256 to the release notes so consumers (e.g. the
+# headlamp-plugins image) can pin it.
+name: Release assets
 
 on:
-  push:
-    tags: ["v*"]
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag to build and attach the plugin tarball to.
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  release:
+  upload:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -17,6 +25,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           persist-credentials: false
+          ref: ${{ inputs.tag }}
       # No cache: input is set, so setup-node restores nothing (no cache to poison).
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0  # zizmor: ignore[cache-poisoning]
         with:
@@ -32,19 +41,18 @@ jobs:
           checksum="$(sha256sum "$tarball" | cut -d' ' -f1)"
           echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
           echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
-      - name: Create release
+      - name: Attach tarball to the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag }}
           TARBALL: ${{ steps.pkg.outputs.tarball }}
           CHECKSUM: ${{ steps.pkg.outputs.checksum }}
         run: |
           set -euo pipefail
+          gh release upload "$TAG" "$TARBALL" --clobber
+          gh release view "$TAG" --json body --jq .body > notes.md
           {
-            echo "Headlamp plugin tarball for \`$TAG\`."
             echo ""
-            echo "SHA256: \`$CHECKSUM\`"
-            echo ""
-            echo "Install: extract into your Headlamp plugins dir so the layout is \`argo-rollouts/main.js\`."
-          } > notes.md
-          gh release create "$TAG" "$TARBALL" --title "$TAG" --notes-file notes.md
+            echo "Plugin tarball SHA256: \`$CHECKSUM\`"
+          } >> notes.md
+          gh release edit "$TAG" --notes-file notes.md
