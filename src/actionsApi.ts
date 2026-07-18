@@ -3,7 +3,9 @@ import {
   abortBody,
   ACTION_LABEL,
   pauseBody,
+  promoteBody,
   promoteFullBody,
+  promoteNextStepIndex,
   restartBody,
   resumeBody,
   retryBody,
@@ -53,6 +55,15 @@ export async function applyAction(
       case 'restart':
         await mergePatch(rolloutPath(namespace, name), restartBody(new Date()));
         break;
+      case 'promote': {
+        // Read the Rollout to compute the next canary step, then clear the pause
+        // and advance the step index (status), and unpause spec too (harmless
+        // no-op if not manually paused) so both step- and manual-pauses resume.
+        const rollout = await request(rolloutPath(namespace, name));
+        await statusPatch(namespace, name, promoteBody(promoteNextStepIndex(rollout)));
+        await mergePatch(rolloutPath(namespace, name), resumeBody());
+        break;
+      }
       case 'abort':
         await statusPatch(namespace, name, abortBody());
         break;

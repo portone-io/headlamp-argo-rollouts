@@ -22,14 +22,14 @@ component renders nothing for non-Rollout resources.
 ### Progressive-delivery actions (detail page)
 
 A **Rollout actions** menu in the detail header, offering (only when applicable to the current state) the same
-controls as `kubectl argo rollouts`: **Promote Full**, **Pause**, **Resume**, **Restart**, **Abort**, **Retry**.
-Each is a plain Kubernetes patch on the Rollout (the same mechanism as the rollback), confirmed via a dialog
-before it runs.
+controls as `kubectl argo rollouts`: **Promote**, **Promote Full**, **Pause**, **Resume**, **Restart**,
+**Abort**, **Retry**. Each is a plain Kubernetes patch on the Rollout (the same mechanism as the rollback),
+confirmed via a dialog before it runs.
 
-- **RBAC:** Abort / Retry / Promote-Full patch the Rollout's `status` subresource (with a fallback to the main
-  resource on older CRDs), so the user needs `patch` on **`rollouts/status`** in addition to `rollouts`.
-- The precise **Promote** (advance a single canary step) is not included yet — it needs the step-index
-  derivation from `promote.go` and is tracked as a follow-up; **Promote Full** (finish the rollout) is provided.
+- **Promote** advances to the next step by clearing the pause condition (`status.pauseConditions: null`) and
+  unpausing; **Promote Full** (`status.promoteFull`) finishes the whole rollout.
+- **RBAC:** Promote / Promote-Full / Abort / Retry patch the Rollout's `status` subresource (with a fallback to
+  the main resource on older CRDs), so the user needs `patch` on **`rollouts/status`** in addition to `rollouts`.
 
 ### Rollouts list columns
 
