@@ -1,0 +1,11 @@
+---
+# Upstream default rules; line-length and truthy.check-keys relaxed for GitHub Actions.
+extends: default
+
+ignore-from-file: .gitignore
+
+rules:
+  line-length:
+    max: 120
+  truthy:
+    check-keys: false

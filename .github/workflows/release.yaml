@@ -1,0 +1,50 @@
+---
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      # No cache: input is set, so setup-node restores nothing (no cache to poison).
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0  # zizmor: ignore[cache-poisoning]
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm run build
+      - name: Package
+        id: pkg
+        run: |
+          set -euo pipefail
+          npm run package
+          tarball="$(ls argo-rollouts-*.tar.gz)"
+          checksum="$(sha256sum "$tarball" | cut -d' ' -f1)"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+          echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          TARBALL: ${{ steps.pkg.outputs.tarball }}
+          CHECKSUM: ${{ steps.pkg.outputs.checksum }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Headlamp plugin tarball for \`$TAG\`."
+            echo ""
+            echo "SHA256: \`$CHECKSUM\`"
+            echo ""
+            echo "Install: extract into your Headlamp plugins dir so the layout is \`argo-rollouts/main.js\`."
+          } > notes.md
+          gh release create "$TAG" "$TARBALL" --title "$TAG" --notes-file notes.md

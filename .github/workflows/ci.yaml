@@ -1,0 +1,33 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
+        with:
+          node-version: "20"
+      # No committed package-lock.json, so npm install (not npm ci).
+      - run: npm install
+      - run: npm run lint
+      - run: npm run tsc
+      - run: npm run build
+      - name: Test
+        run: |
+          if [ -n "$(find src -name '*.test.ts' -o -name '*.test.tsx')" ]; then
+            npm test
+          else
+            echo "No test files, skipping"
+          fi
