@@ -19,6 +19,18 @@ Argo Rollouts are custom resources, and Headlamp's generic custom-resource detai
 actions (not registered detail-view sections), so the entry point is a `registerDetailsViewHeaderAction`; the
 component renders nothing for non-Rollout resources.
 
+### Progressive-delivery actions (detail page)
+
+A **Rollout actions** menu in the detail header, offering (only when applicable to the current state) the same
+controls as `kubectl argo rollouts`: **Promote Full**, **Pause**, **Resume**, **Restart**, **Abort**, **Retry**.
+Each is a plain Kubernetes patch on the Rollout (the same mechanism as the rollback), confirmed via a dialog
+before it runs.
+
+- **RBAC:** Abort / Retry / Promote-Full patch the Rollout's `status` subresource (with a fallback to the main
+  resource on older CRDs), so the user needs `patch` on **`rollouts/status`** in addition to `rollouts`.
+- The precise **Promote** (advance a single canary step) is not included yet — it needs the step-index
+  derivation from `promote.go` and is tracked as a follow-up; **Promote Full** (finish the rollout) is provided.
+
 ### Map view hierarchy
 
 Adds a Rollout node and a Rollout→ReplicaSet ownership edge via `registerMapSource` so that, in the Map (graph)
