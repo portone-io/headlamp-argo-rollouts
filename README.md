@@ -27,6 +27,26 @@ Rollout→ReplicaSet→Pod hierarchy as the built-in Deployment→ReplicaSet→P
 Rollout's ReplicaSets render as top-level nodes because the built-in Map does not know the custom resource owns
 them.
 
+## Relation to the official Argo Rollouts Dashboard
+
+This plugin is **frontend-only by design** — it uses no extra backend and talks only to the Kubernetes API
+(the same way the rest of Headlamp does). The official
+[Argo Rollouts Dashboard](https://argo-rollouts.readthedocs.io/en/stable/dashboard/)
+(`kubectl argo rollouts dashboard`) instead runs an Argo API server that computes a rich, aggregated view and
+streams it to its UI.
+
+Because we don't run that server, this plugin **re-implements a subset** of the dashboard's views client-side
+and cannot reach full parity. Notably out of scope / reduced fidelity:
+
+- Server-streamed live updates (Headlamp's own polling/watch is used instead).
+- Full AnalysisRun metric charts and the Experiments/AnalysisTemplate browsers.
+- Anything else that depends on the Argo dashboard API server's aggregation.
+
+For the complete progressive-delivery experience, **run the official
+[`kubectl argo rollouts dashboard`](https://argo-rollouts.readthedocs.io/en/stable/dashboard/)** alongside
+Headlamp. What this plugin does aim to bring in is tracked under the `mvp` / `v1`
+[milestones](https://github.com/portone-io/headlamp-argo-rollouts/milestones).
+
 ## Status & support
 
 > **Heads-up:** this plugin was built for a proof-of-concept at [PortOne](https://portone.io) and is shared
