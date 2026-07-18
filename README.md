@@ -31,6 +31,13 @@ before it runs.
 - The precise **Promote** (advance a single canary step) is not included yet — it needs the step-index
   derivation from `promote.go` and is tracked as a follow-up; **Promote Full** (finish the rollout) is provided.
 
+### Rollouts list columns
+
+On the Rollouts list page, adds **Strategy**, **Rollout status** (a colored health chip), **Step** (`N/M`), and
+**Weight** columns via `registerResourceTableColumnsProcessor` — an at-a-glance view of every Rollout's
+progress, like the official dashboard's list. Values come from a client-side port of Argo's `RolloutInfo`
+derivation (`src/rolloutInfo.ts`); these columns need only the Rollout object, so no extra per-row fetches.
+
 ### Map view hierarchy
 
 Adds a Rollout node and a Rollout→ReplicaSet ownership edge via `registerMapSource` so that, in the Map (graph)

@@ -1,3 +1,6 @@
+// Adds Strategy / Rollout status / Step / Weight columns to the Rollouts list
+// (registerResourceTableColumnsProcessor on the headlamp-rollouts table).
+import './RolloutColumns';
 import { registerDetailsViewHeaderAction, registerMapSource } from '@kinvolk/headlamp-plugin/lib';
 import { rolloutMapSource } from './mapSource';
 import RollbackButton from './RollbackButton';
