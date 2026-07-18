@@ -1,0 +1,6 @@
+[files]
+# Skip generated lockfiles and translated i18n bundles (non-English by design).
+extend-exclude = [
+  "package-lock.json",
+  "locales/**",
+]

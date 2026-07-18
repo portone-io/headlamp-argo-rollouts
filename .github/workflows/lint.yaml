@@ -1,0 +1,49 @@
+---
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - run: pipx install yamllint==1.38.0
+      - run: yamllint --strict .
+
+  rumdl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: rvben/rumdl@12e34feb01c07d62a8161b5ac74940ffe8954c21  # v0.2.30
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: crate-ci/typos@bee27e3a4fd1ea2111cf90ab89cd076c870fce14  # v1.48.0
+
+  zizmor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      # Run the CLI rather than the action: SARIF upload needs code scanning
+      # (GitHub Advanced Security), which this public repo may not have enabled.
+      - run: pipx install zizmor==1.26.1
+      - run: zizmor .github/workflows/
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
