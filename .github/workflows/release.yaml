@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           npm run package
-          tarball="$(ls argo-rollouts-*.tar.gz)"
+          tarball="$(ls headlamp-argo-rollouts-*.tar.gz)"
           checksum="$(sha256sum "$tarball" | cut -d' ' -f1)"
           echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
           echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
