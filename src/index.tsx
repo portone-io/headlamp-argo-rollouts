@@ -5,6 +5,7 @@ import { registerDetailsViewHeaderAction, registerMapSource } from '@kinvolk/hea
 import { rolloutMapSource } from './mapSource';
 import RollbackButton from './RollbackButton';
 import RolloutActions from './RolloutActions';
+import SetImageButton from './SetImageButton';
 
 // Rollback entry point on the Rollout detail page header. The button opens a
 // dialog that both lists the revision history and lets you roll back to a
@@ -19,6 +20,10 @@ registerDetailsViewHeaderAction(RollbackButton);
 // / Retry) as a header-action menu; each is a plain Kubernetes patch. Renders
 // nothing for non-Rollout resources.
 registerDetailsViewHeaderAction(RolloutActions);
+
+// Set Image: change a container's image (new revision). Own header action with a
+// small form dialog. Renders nothing for non-Rollouts / users who can't patch.
+registerDetailsViewHeaderAction(SetImageButton);
 
 // Make the Map view render Rollout -> ReplicaSet ownership like Deployment does.
 registerMapSource(rolloutMapSource);

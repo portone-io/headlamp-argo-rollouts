@@ -27,9 +27,14 @@ controls as `kubectl argo rollouts`: **Promote**, **Promote Full**, **Pause**, *
 confirmed via a dialog before it runs.
 
 - **Promote** advances to the next step by clearing the pause condition (`status.pauseConditions: null`) and
-  unpausing; **Promote Full** (`status.promoteFull`) finishes the whole rollout.
-- **RBAC:** Promote / Promote-Full / Abort / Retry patch the Rollout's `status` subresource (with a fallback to
-  the main resource on older CRDs), so the user needs `patch` on **`rollouts/status`** in addition to `rollouts`.
+  bumping `status.currentStepIndex`; **Promote Full** (`status.promoteFull`) finishes the whole rollout.
+- **Set Image** — a separate header action that changes a container's image (a targeted JSON Patch), starting a
+  new revision. Rollouts driven by a `workloadRef` point you at the referenced workload instead.
+- **RBAC-gated:** the rollback, actions menu, and Set Image button all **hide themselves** when the user cannot
+  `patch` the Rollout (checked via a `SelfSubjectAccessReview`), so a read-only user isn't shown controls that
+  would 403. Promote / Promote-Full / Abort / Retry additionally patch the `status` subresource (with a fallback
+  to the main resource on older CRDs), so an operator needs `patch` on **`rollouts/status`** as well as
+  `rollouts`.
 
 ### Rollouts list columns
 

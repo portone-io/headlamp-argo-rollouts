@@ -11,6 +11,7 @@ import {
   retryBody,
   RolloutActionId,
   RolloutActionResult,
+  setImagePatch,
 } from './actions';
 
 const GROUP = 'argoproj.io';
@@ -36,6 +37,27 @@ async function statusPatch(namespace: string, name: string, body: unknown): Prom
     await mergePatch(rolloutPath(namespace, name, '/status'), body);
   } catch {
     await mergePatch(rolloutPath(namespace, name), body);
+  }
+}
+
+// Set a container's image (triggers a new revision). Targeted JSON Patch on the
+// single container index.
+export async function applySetImage(
+  namespace: string,
+  name: string,
+  containerIndex: number,
+  image: string
+): Promise<RolloutActionResult> {
+  try {
+    await request(rolloutPath(namespace, name), {
+      method: 'PATCH',
+      body: JSON.stringify(setImagePatch(containerIndex, image)),
+      headers: { 'Content-Type': 'application/json-patch+json' },
+    });
+    return { success: true, message: `Set image to ${image}` };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Set image failed: ${msg}` };
   }
 }
 

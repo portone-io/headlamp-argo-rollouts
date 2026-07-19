@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { useCanPatchRollout } from './rbac';
 import { getRevisionHistory, RevisionInfo, rollbackRollout } from './rollback';
 
 const ROLLOUT_REVISION_ANNOTATION = 'rollout.argoproj.io/revision';
@@ -85,6 +86,13 @@ function RollbackDialog(props: { item: any }) {
       setSelected(previous ? previous.revision : '');
     });
   }, [open]);
+
+  const allowed = useCanPatchRollout(namespace, name);
+
+  // Hide rollback for users who cannot patch the Rollout (would 403).
+  if (allowed === false) {
+    return null;
+  }
 
   async function onConfirm() {
     if (selected === '') {

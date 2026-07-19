@@ -91,6 +91,19 @@ export function restartBody(now: Date) {
   return { spec: { restartAt: now.toISOString() } };
 }
 
+// Set Image: a targeted JSON Patch replacing one container's image (applied with
+// content-type application/json-patch+json). Scoped to a single container index
+// so it never rewrites the rest of the pod template.
+export function setImagePatch(containerIndex: number, image: string) {
+  return [
+    {
+      op: 'replace',
+      path: `/spec/template/spec/containers/${containerIndex}/image`,
+      value: image,
+    },
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // Applicability gating. Reads the raw Rollout (spec + status) so buttons are
 // only offered when the action is meaningful.
