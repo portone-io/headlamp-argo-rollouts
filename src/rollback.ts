@@ -1,66 +1,27 @@
 import { request } from '@kinvolk/headlamp-plugin/lib/ApiProxy';
+import {
+  buildRollbackPatch,
+  ReplicaSetLike,
+  RevisionInfo,
+  RollbackResult,
+  selectOwnedReplicaSets,
+  selectRollbackTarget,
+  toRevisionHistory,
+} from './rollbackLogic';
 
-// Argo Rollouts uses the same ReplicaSet-based revision model as core Kubernetes
-// Deployments, but with its own annotation/label keys. See:
-//   https://github.com/argoproj/argo-rollouts/blob/master/rollout/replicaset.go
-export const ROLLOUT_REVISION_ANNOTATION = 'rollout.argoproj.io/revision';
-export const ROLLOUT_POD_TEMPLATE_HASH_LABEL = 'rollouts-pod-template-hash';
-
-export interface RollbackResult {
-  success: boolean;
-  message: string;
-  targetRevision?: number;
-}
-
-export interface RevisionInfo {
-  revision: number;
-  createdAt: string;
-  images: string[];
-  isCurrent: boolean;
-}
-
-interface OwnerRef {
-  kind: string;
-  uid: string;
-}
-
-interface ReplicaSetLike {
-  metadata: {
-    name: string;
-    uid: string;
-    creationTimestamp?: string;
-    annotations?: Record<string, string>;
-    labels?: Record<string, string>;
-    ownerReferences?: OwnerRef[];
-  };
-  spec: {
-    template: {
-      metadata?: { labels?: Record<string, string>; [k: string]: any };
-      spec?: { containers?: { image?: string }[]; [k: string]: any };
-      [k: string]: any;
-    };
-  };
-}
+// The pure, unit-tested logic lives in rollbackLogic.ts (SDK-free). This module
+// is the thin async layer that fetches from the API and applies the patch.
+export type { RevisionInfo, RollbackResult } from './rollbackLogic';
 
 /**
- * Lists the ReplicaSets owned by the given Rollout (matched by ownerReference
- * kind=Rollout + uid), each carrying a revision annotation.
+ * Lists the ReplicaSets owned by the given Rollout, each carrying a revision.
  */
 async function getOwnedReplicaSets(
   namespace: string,
   rolloutUid: string
 ): Promise<{ rs: ReplicaSetLike; revision: number }[]> {
   const list = await request(`/apis/apps/v1/namespaces/${namespace}/replicasets`);
-  const items: ReplicaSetLike[] = list?.items ?? [];
-  return items
-    .filter(rs =>
-      rs.metadata.ownerReferences?.some(ref => ref.kind === 'Rollout' && ref.uid === rolloutUid)
-    )
-    .map(rs => ({
-      rs,
-      revision: parseInt(rs.metadata.annotations?.[ROLLOUT_REVISION_ANNOTATION] || '0', 10),
-    }))
-    .filter(r => r.revision > 0);
+  return selectOwnedReplicaSets(list?.items ?? [], rolloutUid);
 }
 
 /**
@@ -72,14 +33,7 @@ export async function getRevisionHistory(
   currentRevision: string
 ): Promise<RevisionInfo[]> {
   const owned = await getOwnedReplicaSets(namespace, rolloutUid);
-  return owned
-    .map(({ rs, revision }) => ({
-      revision,
-      createdAt: rs.metadata.creationTimestamp || '',
-      images: (rs.spec?.template?.spec?.containers || []).map(c => c.image || ''),
-      isCurrent: String(revision) === currentRevision,
-    }))
-    .sort((a, b) => b.revision - a.revision);
+  return toRevisionHistory(owned, currentRevision);
 }
 
 /**
@@ -97,32 +51,12 @@ export async function rollbackRollout(
     const owned = await getOwnedReplicaSets(namespace, rolloutUid);
     const sorted = owned.sort((a, b) => b.revision - a.revision);
 
-    if (sorted.length === 0) {
-      return { success: false, message: 'No revision history found for this Rollout' };
+    const target = selectRollbackTarget(sorted, toRevision);
+    if ('error' in target) {
+      return { success: false, message: target.error };
     }
 
-    let target;
-    if (toRevision !== undefined && toRevision > 0) {
-      target = sorted.find(r => r.revision === toRevision);
-      if (!target) {
-        return { success: false, message: `Revision ${toRevision} not found in history` };
-      }
-      if (target.revision === sorted[0].revision) {
-        return { success: false, message: 'Cannot rollback to the current revision' };
-      }
-    } else {
-      if (sorted.length < 2) {
-        return { success: false, message: 'No previous revision available to rollback to' };
-      }
-      target = sorted[1];
-    }
-
-    const template = JSON.parse(JSON.stringify(target.rs.spec.template));
-    if (template.metadata?.labels?.[ROLLOUT_POD_TEMPLATE_HASH_LABEL]) {
-      delete template.metadata.labels[ROLLOUT_POD_TEMPLATE_HASH_LABEL];
-    }
-
-    const patch = [{ op: 'replace', path: '/spec/template', value: template }];
+    const patch = buildRollbackPatch(target.rs.spec.template);
     await request(`/apis/argoproj.io/v1alpha1/namespaces/${namespace}/rollouts/${name}`, {
       method: 'PATCH',
       body: JSON.stringify(patch),

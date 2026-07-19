@@ -7,6 +7,7 @@ import type {
 import { makeCustomResourceClass } from '@kinvolk/headlamp-plugin/lib/Crd';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { buildRolloutGraph } from './rolloutGraph';
 
 // Argo Rollout is a custom resource, so Headlamp's built-in Map doesn't know it
 // owns the ReplicaSets underneath it. Its ReplicaSets therefore render as
@@ -26,8 +27,7 @@ const Rollout = makeCustomResourceClass([['argoproj.io', 'v1alpha1', 'rollouts']
 // only exposes an allow-list of module paths at runtime (see the SDK's
 // vite.config externals: lib, lib/Crd, lib/k8s, ...); a deep import of
 // components/resourceMap/... builds fine but resolves to an undefined runtime
-// global and crashes. So we inline the two tiny helpers here.
-const ROLLOUT_CRD = 'rollouts.argoproj.io';
+// global and crashes. So we inline the graph construction (see rolloutGraph.ts).
 
 // Replicate useNamespaces() (which lives in the SDK's redux/filterSlice, another
 // non-exposed path) via the shared react-redux store. Empty means all namespaces.
@@ -47,43 +47,10 @@ function useRolloutGraphData() {
     if (!rollouts) {
       return null;
     }
-
-    const nodes: GraphNode[] = rollouts.map(rollout => ({
-      id: rollout.metadata.uid,
-      kubeObject: rollout,
-      customResourceDefinition: ROLLOUT_CRD,
-      // The Map lays columns out by descending node weight (ELK partitioning).
-      // "Rollout" is absent from Headlamp's DEFAULT_NODE_WEIGHTS so it falls to
-      // the default (~500) and gets pinned to the far-right column, ~4 columns
-      // from the ReplicaSets it owns. Match Deployment's weight (980 > RS 960)
-      // so the Rollout sits one column left of its ReplicaSets, like the native
-      // Deployment -> ReplicaSet -> Pod spine.
-      weight: 980,
-    }));
-
-    const rolloutUids = new Set(rollouts.map(r => r.metadata.uid));
-
-    // Emit one owner edge per ReplicaSet that a Rollout owns. Headlamp's default
-    // owner-edge convention (kubeOwnersEdges) is child -> parent: source is the
-    // owned object (ReplicaSet), target is the owner (Rollout). The built-in
-    // graph draws Pod -> ReplicaSet the same way, so matching that convention
-    // makes the hierarchy render consistently (Rollout as the parent above its
-    // ReplicaSets). Emitting owner -> child here instead rendered it upside down.
-    const edges: GraphEdge[] = [];
-    for (const rs of replicaSets ?? []) {
-      const owner = rs.metadata.ownerReferences?.find(
-        ref => ref.kind === 'Rollout' && rolloutUids.has(ref.uid)
-      );
-      if (owner) {
-        edges.push({
-          id: `${rs.metadata.uid}-${owner.uid}`,
-          source: rs.metadata.uid,
-          target: owner.uid,
-        });
-      }
-    }
-
-    return { nodes, edges };
+    // Node/edge construction lives in the SDK-free rolloutGraph module so it can
+    // be unit-tested. See there for the weight and owner-edge-direction rationale.
+    const { nodes, edges } = buildRolloutGraph(rollouts, replicaSets ?? []);
+    return { nodes: nodes as GraphNode[], edges: edges as GraphEdge[] };
   }, [rollouts, replicaSets]);
 }
 
