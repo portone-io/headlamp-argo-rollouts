@@ -15,12 +15,22 @@ npm run start   # run against a local Headlamp
 npm run tsc     # type check
 npm run lint    # eslint (use `npm run lint-fix` to autofix)
 npm run test    # vitest unit tests
+npm run i18n    # re-extract the translation catalog (locales/)
 npm run build   # produce dist/main.js
 npm run package # produce the distributable <name>-<version>.tar.gz (+ sha256)
 ```
 
 Before opening a PR, please make sure `npm run tsc`, `npm run lint`, and
 `npm run test` all pass. CI runs the same steps.
+
+### i18n
+
+User-facing strings go through the SDK's `useTranslation()` hook — natural
+English is the key, e.g. `t('Rollback')` or `t('Set image: {{name}}', { name })`.
+Add new strings as **literal** `t('…')` calls (not a variable lookup) so
+`i18next-parser` can extract them, then run `npm run i18n` to update
+`locales/en/translation.json` and commit it. CI fails if the catalog is stale.
+Add a locale with `npm run i18n <locale>` (e.g. `npm run i18n ko`).
 
 ### Testing conventions
 

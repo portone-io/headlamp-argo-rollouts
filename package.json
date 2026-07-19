@@ -19,7 +19,8 @@
     "lint-fix": "headlamp-plugin lint --fix",
     "tsc": "headlamp-plugin tsc",
     "test": "headlamp-plugin test",
-    "package": "headlamp-plugin package"
+    "package": "headlamp-plugin package",
+    "i18n": "headlamp-plugin i18n"
   },
   "keywords": [
     "headlamp",
@@ -40,5 +41,10 @@
   },
   "devDependencies": {
     "@kinvolk/headlamp-plugin": "^0.14.0"
+  },
+  "headlamp": {
+    "i18n": [
+      "en"
+    ]
   }
 }

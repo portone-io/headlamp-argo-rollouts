@@ -1,3 +1,4 @@
+import { useTranslation } from '@kinvolk/headlamp-plugin/lib';
 import { ActionButton, SimpleTable } from '@kinvolk/headlamp-plugin/lib/CommonComponents';
 import {
   Alert,
@@ -65,6 +66,7 @@ export default function RollbackButton(props: { item: any }) {
 
 function RollbackDialog(props: { item: any }) {
   const { item } = props;
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [history, setHistory] = useState<RevisionInfo[]>([]);
   const [selected, setSelected] = useState<number | ''>('');
@@ -141,37 +143,40 @@ function RollbackDialog(props: { item: any }) {
   return (
     <>
       <ActionButton
-        description="Rollback"
+        description={t('Rollback')}
         icon="mdi:history"
         onClick={() => setOpen(true)}
       />
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Rollback Rollout: {name}</DialogTitle>
+        <DialogTitle>{t('Rollback Rollout: {{name}}', { name })}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            Current revision: {currentRevision}. The revisions below are the ReplicaSets owned by
-            this Rollout. Pick a previous revision to roll back to; its pod template will be applied
-            to the Rollout.
+            {t(
+              'Current revision: {{revision}}. The revisions below are the ReplicaSets owned by this Rollout. Pick a previous revision to roll back to; its pod template will be applied to the Rollout.',
+              { revision: currentRevision }
+            )}
           </Typography>
           {inFlight && (
             <Alert severity="warning" sx={{ mb: 2 }}>
-              This Rollout is currently <strong>{phase}</strong>. Rolling back now supersedes the
-              in-flight rollout with the selected revision's pod template.
+              {t(
+                "This Rollout is currently {{phase}}. Rolling back now supersedes the in-flight rollout with the selected revision's pod template.",
+                { phase }
+              )}
             </Alert>
           )}
           {loading && (
             <Typography variant="body2" sx={{ my: 2 }}>
-              Loading revision history…
+              {t('Loading revision history…')}
             </Typography>
           )}
           {loadError && (
             <Alert severity="error" sx={{ my: 2 }}>
-              Failed to load revision history: {loadError}
+              {t('Failed to load revision history: {{error}}', { error: loadError })}
             </Alert>
           )}
           {noPrevious && (
             <Alert severity="info" sx={{ my: 2 }}>
-              No previous revision available to roll back to.
+              {t('No previous revision available to roll back to.')}
             </Alert>
           )}
           {!loading && !loadError && history.length > 0 && (
@@ -180,16 +185,16 @@ function RollbackDialog(props: { item: any }) {
                 data={history}
                 columns={[
                   {
-                    label: 'Revision',
+                    label: t('Revision'),
                     getter: (r: RevisionInfo) =>
-                      r.isCurrent ? `${r.revision} (current)` : `${r.revision}`,
+                      r.isCurrent ? t('{{revision}} (current)', { revision: r.revision }) : `${r.revision}`,
                   },
                   {
-                    label: 'Image(s)',
-                    getter: (r: RevisionInfo) => r.images.join(', ') || 'no images',
+                    label: t('Image(s)'),
+                    getter: (r: RevisionInfo) => r.images.join(', ') || t('no images'),
                   },
                   {
-                    label: 'Created',
+                    label: t('Created'),
                     getter: (r: RevisionInfo) =>
                       r.createdAt
                         ? `${new Date(r.createdAt).toLocaleString()} (${ageFromNow(r.createdAt)})`
@@ -199,16 +204,19 @@ function RollbackDialog(props: { item: any }) {
               />
               {previousRevisions.length > 0 && (
                 <FormControl fullWidth sx={{ mt: 2 }}>
-                  <InputLabel id="rollback-revision-label">Target revision</InputLabel>
+                  <InputLabel id="rollback-revision-label">{t('Target revision')}</InputLabel>
                   <Select
                     labelId="rollback-revision-label"
-                    label="Target revision"
+                    label={t('Target revision')}
                     value={selected}
                     onChange={e => setSelected(Number(e.target.value))}
                   >
                     {previousRevisions.map(r => (
                       <MenuItem key={r.revision} value={r.revision}>
-                        Revision {r.revision} — {r.images.join(', ') || 'no images'}
+                        {t('Revision {{revision}} — {{images}}', {
+                          revision: r.revision,
+                          images: r.images.join(', ') || t('no images'),
+                        })}
                       </MenuItem>
                     ))}
                   </Select>
@@ -223,14 +231,14 @@ function RollbackDialog(props: { item: any }) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Close</Button>
+          <Button onClick={() => setOpen(false)}>{t('Close')}</Button>
           <Button
             variant="contained"
             color="warning"
             disabled={busy || loading || selected === '' || (result?.ok ?? false)}
             onClick={onConfirm}
           >
-            {busy ? 'Rolling back…' : 'Rollback'}
+            {busy ? t('Rolling back…') : t('Rollback')}
           </Button>
         </DialogActions>
       </Dialog>

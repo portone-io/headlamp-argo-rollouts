@@ -31,3 +31,11 @@ jobs:
           else
             echo "No test files, skipping"
           fi
+      - name: i18n catalog is up to date
+        run: |
+          npm run i18n
+          if ! git diff --quiet -- locales; then
+            echo "::error::locales/ is stale. Run 'npm run i18n' and commit the result."
+            git diff -- locales
+            exit 1
+          fi
