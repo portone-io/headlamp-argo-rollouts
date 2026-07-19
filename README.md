@@ -105,6 +105,12 @@ npm run package # produce the distributable <name>-<version>.tar.gz (+ sha256)
 
 Built on [`@kinvolk/headlamp-plugin`](https://github.com/headlamp-k8s/headlamp/tree/main/plugins/headlamp-plugin).
 
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the dev loop, testing/commit
+conventions, and how releases are cut. Security reports go through
+[private vulnerability reporting](./SECURITY.md).
+
 ## License
 
 [MIT](./LICENSE)
