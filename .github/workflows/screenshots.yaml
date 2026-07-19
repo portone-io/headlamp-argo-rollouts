@@ -1,0 +1,45 @@
+---
+name: Screenshots
+
+# Regenerates docs/screenshots/ by rendering the plugin in a real Headlamp
+# against a kind cluster, then opens/updates a PR if the images changed. Running
+# it doubles as a runtime smoke test (the plugin must actually render).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "e2e/**"
+      - ".github/workflows/screenshots.yaml"
+
+permissions: {}
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
+        with:
+          node-version: "20"
+      - name: Capture screenshots
+        env:
+          PW_DEPS: "--with-deps"
+        run: bash e2e/run.sh
+      - name: Open PR if screenshots changed
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1  # v8.1.1
+        with:
+          add-paths: docs/screenshots/**
+          branch: chore/refresh-screenshots
+          delete-branch: true
+          commit-message: "chore: refresh screenshots"
+          title: "chore: refresh screenshots"
+          body: >
+            Automated refresh of `docs/screenshots/` from the live Headlamp
+            render (kind + Argo Rollouts). Review the visual diff before merging.

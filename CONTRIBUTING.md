@@ -62,6 +62,18 @@ changes go in a `feat!:`/`fix!:` subject or a `BREAKING CHANGE:` footer.
 - release-please opens/updates a `chore(main): release X.Y.Z` PR automatically;
   merging it cuts the tag, GitHub Release, and the attached tarball (+ SHA256).
 
+## Screenshots (e2e)
+
+The README screenshots in `docs/screenshots/` are generated, not hand-captured.
+`bash e2e/run.sh` spins up a kind cluster with Argo Rollouts and a sample
+Rollout, runs Headlamp (this plugin loaded) in Docker, and drives it with
+Playwright to re-render them (set `KEEP=1` to leave the cluster up for
+debugging). CI runs the same flow on `main` changes to `src/` or `e2e/` and
+opens a "chore: refresh screenshots" PR when the images change — so a UI change
+that alters the rendered output surfaces as a reviewable visual diff, and the
+job doubles as a runtime smoke test. Regenerate locally and let that PR carry
+the update rather than committing screenshots by hand.
+
 ## Verifying against a live cluster
 
 Front-end and data-path changes are best verified against a real Rollout. A

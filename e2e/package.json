@@ -1,0 +1,12 @@
+{
+  "name": "headlamp-argo-rollouts-e2e",
+  "private": true,
+  "description": "kind + Headlamp end-to-end screenshot capture (not part of the plugin bundle)",
+  "type": "module",
+  "scripts": {
+    "screenshots": "node screenshots.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
