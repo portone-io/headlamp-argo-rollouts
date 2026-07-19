@@ -1,3 +1,4 @@
+import { useTranslation } from '@kinvolk/headlamp-plugin/lib';
 import { ActionButton } from '@kinvolk/headlamp-plugin/lib/CommonComponents';
 import {
   Alert,
@@ -38,6 +39,7 @@ export default function SetImageButton(props: { item: any }) {
 
 function SetImageDialog(props: { item: any }) {
   const { item } = props;
+  const { t } = useTranslation();
   const namespace = item.metadata?.namespace;
   const name = item.metadata?.name;
   const allowed = useCanPatchRollout(namespace, name);
@@ -81,27 +83,29 @@ function SetImageDialog(props: { item: any }) {
   return (
     <>
       <ActionButton
-        description="Set image"
+        description={t('Set image')}
         icon="mdi:image-edit-outline"
         onClick={() => setOpen(true)}
       />
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Set image: {name}</DialogTitle>
+        <DialogTitle>{t('Set image: {{name}}', { name })}</DialogTitle>
         <DialogContent>
           {workloadRef ? (
             <Alert severity="info">
-              This Rollout is driven by a <code>workloadRef</code> ({workloadRef.kind}/{workloadRef.name}); set
-              the image on that workload instead.
+              {t(
+                'This Rollout is driven by a workloadRef ({{ref}}); set the image on that workload instead.',
+                { ref: `${workloadRef.kind}/${workloadRef.name}` }
+              )}
             </Alert>
           ) : containers.length === 0 ? (
-            <Alert severity="info">No containers found on this Rollout's pod template.</Alert>
+            <Alert severity="info">{t("No containers found on this Rollout's pod template.")}</Alert>
           ) : (
             <>
               <FormControl fullWidth sx={{ mt: 1 }}>
-                <InputLabel id="set-image-container-label">Container</InputLabel>
+                <InputLabel id="set-image-container-label">{t('Container')}</InputLabel>
                 <Select
                   labelId="set-image-container-label"
-                  label="Container"
+                  label={t('Container')}
                   value={index}
                   onChange={e => setIndex(Number(e.target.value))}
                 >
@@ -114,13 +118,13 @@ function SetImageDialog(props: { item: any }) {
               </FormControl>
               <TextField
                 fullWidth
-                label="Image"
+                label={t('Image')}
                 value={image}
                 onChange={e => setImage(e.target.value)}
                 sx={{ mt: 2 }}
               />
               <Typography variant="caption" color="textSecondary">
-                Setting a new image starts a new revision.
+                {t('Setting a new image starts a new revision.')}
               </Typography>
             </>
           )}
@@ -131,14 +135,14 @@ function SetImageDialog(props: { item: any }) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Close</Button>
+          <Button onClick={() => setOpen(false)}>{t('Close')}</Button>
           <Button
             variant="contained"
             color="warning"
             disabled={!canApply || (result?.ok ?? false)}
             onClick={onConfirm}
           >
-            {busy ? 'Applying…' : 'Set image'}
+            {busy ? t('Applying…') : t('Set image')}
           </Button>
         </DialogActions>
       </Dialog>

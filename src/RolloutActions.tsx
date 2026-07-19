@@ -1,3 +1,4 @@
+import { useTranslation } from '@kinvolk/headlamp-plugin/lib';
 import { ActionButton } from '@kinvolk/headlamp-plugin/lib/CommonComponents';
 import {
   Alert,
@@ -11,7 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { ACTION_LABEL, isApplicable, RolloutActionId } from './actions';
+import { isApplicable, RolloutActionId } from './actions';
 import { applyAction } from './actionsApi';
 import { useCanPatchRollout } from './rbac';
 
@@ -26,16 +27,48 @@ const ACTION_ORDER: RolloutActionId[] = [
   'retry',
 ];
 
-// Per-action confirmation copy (these mutate a live workload).
-const CONFIRM: Record<RolloutActionId, string> = {
-  promote: 'Promote this Rollout to the next step?',
-  promoteFull: 'Skip all remaining steps and promote this Rollout to completion?',
-  pause: 'Pause this Rollout? The controller will stop progressing it until resumed.',
-  resume: 'Resume this Rollout?',
-  restart: 'Restart this Rollout? All of its Pods will be recreated.',
-  abort: 'Abort this Rollout? It will roll back to the stable version.',
-  retry: 'Retry this aborted Rollout?',
-};
+// Translated action label. Literal t() calls (not a lookup) so i18next-parser
+// can statically extract every key. Mirrors ACTION_LABEL in actions.ts, which
+// stays the English source for the operational result messages.
+function actionLabel(t: (s: string) => string, id: RolloutActionId): string {
+  switch (id) {
+    case 'promote':
+      return t('Promote');
+    case 'promoteFull':
+      return t('Promote Full');
+    case 'pause':
+      return t('Pause');
+    case 'resume':
+      return t('Resume');
+    case 'restart':
+      return t('Restart');
+    case 'abort':
+      return t('Abort');
+    case 'retry':
+      return t('Retry');
+  }
+}
+
+// Per-action confirmation copy (these mutate a live workload). Literal t() calls
+// for the same static-extraction reason as actionLabel.
+function confirmText(t: (s: string) => string, id: RolloutActionId): string {
+  switch (id) {
+    case 'promote':
+      return t('Promote this Rollout to the next step?');
+    case 'promoteFull':
+      return t('Skip all remaining steps and promote this Rollout to completion?');
+    case 'pause':
+      return t('Pause this Rollout? The controller will stop progressing it until resumed.');
+    case 'resume':
+      return t('Resume this Rollout?');
+    case 'restart':
+      return t('Restart this Rollout? All of its Pods will be recreated.');
+    case 'abort':
+      return t('Abort this Rollout? It will roll back to the stable version.');
+    case 'retry':
+      return t('Retry this aborted Rollout?');
+  }
+}
 
 function isRollout(item: any): boolean {
   // On a KubeObject, .kind is a getter ("Rollout") but there is no .apiVersion
@@ -56,6 +89,7 @@ export default function RolloutActions(props: { item: any }) {
 
 function RolloutActionsMenu(props: { item: any }) {
   const { item } = props;
+  const { t } = useTranslation();
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [pending, setPending] = useState<RolloutActionId | null>(null);
   const [busy, setBusy] = useState(false);
@@ -90,22 +124,24 @@ function RolloutActionsMenu(props: { item: any }) {
   return (
     <>
       <ActionButton
-        description="Rollout actions"
+        description={t('Rollout actions')}
         icon="mdi:play-circle-outline"
         onClick={e => setAnchor(e.currentTarget)}
       />
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
         {available.map(id => (
           <MenuItem key={id} onClick={() => openDialog(id)}>
-            {ACTION_LABEL[id]}
+            {actionLabel(t, id)}
           </MenuItem>
         ))}
       </Menu>
 
       <Dialog open={pending !== null} onClose={() => setPending(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>{pending ? ACTION_LABEL[pending] : ''}: {name}</DialogTitle>
+        <DialogTitle>
+          {pending ? t('{{action}}: {{name}}', { action: actionLabel(t, pending), name }) : ''}
+        </DialogTitle>
         <DialogContent>
-          <Typography variant="body2">{pending ? CONFIRM[pending] : ''}</Typography>
+          <Typography variant="body2">{pending ? confirmText(t, pending) : ''}</Typography>
           {result && (
             <Alert severity={result.ok ? 'success' : 'error'} sx={{ mt: 2 }}>
               {result.msg}
@@ -113,14 +149,14 @@ function RolloutActionsMenu(props: { item: any }) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPending(null)}>Close</Button>
+          <Button onClick={() => setPending(null)}>{t('Close')}</Button>
           <Button
             variant="contained"
             color="warning"
             disabled={busy || (result?.ok ?? false)}
             onClick={onConfirm}
           >
-            {busy ? 'Applying…' : 'Confirm'}
+            {busy ? t('Applying…') : t('Confirm')}
           </Button>
         </DialogActions>
       </Dialog>
