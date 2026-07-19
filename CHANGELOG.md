@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0](https://github.com/portone-io/headlamp-argo-rollouts/compare/v0.2.0...v0.3.0) (2026-07-19)
+
+
+### Features
+
+* declare and CI-test Headlamp version compatibility ([#30](https://github.com/portone-io/headlamp-argo-rollouts/issues/30)) ([c2ca344](https://github.com/portone-io/headlamp-argo-rollouts/commit/c2ca344f63506993bbeea6e8749f29de02590e33)), closes [#4](https://github.com/portone-io/headlamp-argo-rollouts/issues/4)
+* enrich revision history with roles, pods, and AnalysisRuns ([#31](https://github.com/portone-io/headlamp-argo-rollouts/issues/31)) ([e18f2cb](https://github.com/portone-io/headlamp-argo-rollouts/commit/e18f2cbf4f594991c33067c990aed161ca64d2d9)), closes [#14](https://github.com/portone-io/headlamp-argo-rollouts/issues/14)
+* internationalize user-facing strings (i18n) ([#29](https://github.com/portone-io/headlamp-argo-rollouts/issues/29)) ([a6217d7](https://github.com/portone-io/headlamp-argo-rollouts/commit/a6217d7043ad6e5bfdd7fb1b69ec8170bdff8b95)), closes [#5](https://github.com/portone-io/headlamp-argo-rollouts/issues/5)
+* **rollback:** harden the dialog with error, empty, and in-flight states ([#27](https://github.com/portone-io/headlamp-argo-rollouts/issues/27)) ([1b7fec6](https://github.com/portone-io/headlamp-argo-rollouts/commit/1b7fec6c940671e9be749c33ddfa67264b4b78a7)), closes [#2](https://github.com/portone-io/headlamp-argo-rollouts/issues/2)
+
 ## [0.2.0](https://github.com/portone-io/headlamp-argo-rollouts/compare/v0.1.0...v0.2.0) (2026-07-19)
 
 
