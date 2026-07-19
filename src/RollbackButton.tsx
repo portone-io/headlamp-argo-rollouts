@@ -1,5 +1,5 @@
 import { useTranslation } from '@kinvolk/headlamp-plugin/lib';
-import { ActionButton, SimpleTable } from '@kinvolk/headlamp-plugin/lib/CommonComponents';
+import { ActionButton, SimpleTable, StatusLabel } from '@kinvolk/headlamp-plugin/lib/CommonComponents';
 import {
   Alert,
   Button,
@@ -15,7 +15,9 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useCanPatchRollout } from './rbac';
-import { getRevisionHistory, RevisionInfo, rollbackRollout } from './rollback';
+import { EnrichedRevision, getEnrichedRevisions } from './revisions';
+import { analysisPhaseToStatus, podsHealth } from './revisionsLogic';
+import { rollbackRollout } from './rollback';
 import { aggregateRolloutInfo } from './rolloutInfo';
 
 const ROLLOUT_REVISION_ANNOTATION = 'rollout.argoproj.io/revision';
@@ -68,7 +70,7 @@ function RollbackDialog(props: { item: any }) {
   const { item } = props;
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [history, setHistory] = useState<RevisionInfo[]>([]);
+  const [history, setHistory] = useState<EnrichedRevision[]>([]);
   const [selected, setSelected] = useState<number | ''>('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -93,7 +95,7 @@ function RollbackDialog(props: { item: any }) {
     setLoadError(null);
     setLoading(true);
     let cancelled = false;
-    getRevisionHistory(namespace, uid, currentRevision)
+    getEnrichedRevisions(namespace, item, currentRevision)
       .then(h => {
         if (cancelled) {
           return;
@@ -147,7 +149,7 @@ function RollbackDialog(props: { item: any }) {
         icon="mdi:history"
         onClick={() => setOpen(true)}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>{t('Rollback Rollout: {{name}}', { name })}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 1 }}>
@@ -186,16 +188,44 @@ function RollbackDialog(props: { item: any }) {
                 columns={[
                   {
                     label: t('Revision'),
-                    getter: (r: RevisionInfo) =>
+                    getter: (r: EnrichedRevision) =>
                       r.isCurrent ? t('{{revision}} (current)', { revision: r.revision }) : `${r.revision}`,
                   },
                   {
+                    label: t('Role'),
+                    getter: (r: EnrichedRevision) =>
+                      r.role ? <StatusLabel status="">{r.role}</StatusLabel> : '—',
+                  },
+                  {
+                    label: t('Pods'),
+                    getter: (r: EnrichedRevision) => (
+                      <StatusLabel status={podsHealth(r.replicas, r.available)}>
+                        {r.available}/{r.replicas}
+                      </StatusLabel>
+                    ),
+                  },
+                  {
                     label: t('Image(s)'),
-                    getter: (r: RevisionInfo) => r.images.join(', ') || t('no images'),
+                    getter: (r: EnrichedRevision) => r.images.join(', ') || t('no images'),
+                  },
+                  {
+                    label: t('Analysis'),
+                    getter: (r: EnrichedRevision) =>
+                      r.analysisRuns.length === 0 ? (
+                        '—'
+                      ) : (
+                        <>
+                          {r.analysisRuns.map(a => (
+                            <StatusLabel key={a.name} status={analysisPhaseToStatus(a.phase)}>
+                              {a.name}: {a.phase || t('Pending')}
+                            </StatusLabel>
+                          ))}
+                        </>
+                      ),
                   },
                   {
                     label: t('Created'),
-                    getter: (r: RevisionInfo) =>
+                    getter: (r: EnrichedRevision) =>
                       r.createdAt
                         ? `${new Date(r.createdAt).toLocaleString()} (${ageFromNow(r.createdAt)})`
                         : '—',

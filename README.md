@@ -15,6 +15,13 @@ copies the target revision's `spec.template`, drops the `rollouts-pod-template-h
 `{op: replace, path: /spec/template}` JSON Patch to the Rollout. (Requires `patch` RBAC on
 `rollouts.argoproj.io` for the cluster user.)
 
+The revision history is enriched toward the dashboard's revisions panel: each revision shows its ReplicaSet
+**role** (stable / canary / active / preview), **pod** counts (available/total, health-colored), and any
+attached **AnalysisRuns** with their phase (matched to the revision by `rollouts-pod-template-hash`). Roles and
+pod counts come from the client-side `RolloutInfo` derivation (no extra fetch); AnalysisRuns are read
+best-effort (absent CRD or no access simply shows none). Full AnalysisRun metric charts remain out of scope —
+run the official dashboard for those.
+
 Argo Rollouts are custom resources, and Headlamp's generic custom-resource detail view renders only header
 actions (not registered detail-view sections), so the entry point is a `registerDetailsViewHeaderAction`; the
 component renders nothing for non-Rollout resources.

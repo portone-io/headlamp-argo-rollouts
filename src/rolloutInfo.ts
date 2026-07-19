@@ -28,6 +28,7 @@ export interface ReplicaSetInfo {
   images: string[];
   replicas: number;
   available: number;
+  createdAt: string;
 }
 
 export interface RolloutInfo {
@@ -160,6 +161,7 @@ export function aggregateRolloutInfo(rollout: any, replicaSets: any[]): RolloutI
         images: (rs.spec?.template?.spec?.containers ?? []).map((c: any) => c.image ?? ''),
         replicas: rs.status?.replicas ?? rs.spec?.replicas ?? 0,
         available: rs.status?.availableReplicas ?? 0,
+        createdAt: rs.metadata?.creationTimestamp ?? '',
       };
     })
     .sort((a, b) => b.revision - a.revision);
