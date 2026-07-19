@@ -1,0 +1,29 @@
+---
+# Artifact Hub metadata for this Headlamp plugin.
+#
+# This repo is not itself published to Artifact Hub (see the README "Status &
+# support" note). This file is a ready-to-use template for anyone who forks and
+# publishes: the compatibility annotations are filled in, and the release
+# workflow (release.yaml) produces the tarball whose URL + SHA256 go into
+# archive-url / archive-checksum at publish time.
+version: 0.2.0
+name: headlamp-argo-rollouts
+displayName: Argo Rollouts
+createdAt: "2026-07-19T00:00:00Z"
+description: >-
+  Argo Rollouts support for Headlamp: revision history + rollback, progressive-
+  delivery actions (promote/pause/abort/…), Set Image, Rollouts list columns, and
+  a Rollout→ReplicaSet hierarchy in the Map view.
+# logoURL: filled in once logo.png lands (tracked in issue #7).
+annotations:
+  # The tarball URL + checksum are per-release; the release workflow attaches
+  # both to each GitHub Release (the SHA256 is printed in the release notes).
+  headlamp/plugin/archive-url: >-
+    https://github.com/portone-io/headlamp-argo-rollouts/releases/download/v0.2.0/headlamp-argo-rollouts-0.2.0.tar.gz
+  headlamp/plugin/archive-checksum: "sha256:<filled-in-at-publish-time>"
+  # Verified against Headlamp v0.43.0 (the PortOne dev deployment). The Map
+  # source API (registerMapSource) and the plugin i18n runtime are the newest
+  # Headlamp APIs this plugin depends on, so the floor is set conservatively to
+  # the tested version rather than guessed lower.
+  headlamp/plugin/version-compat: ">=0.43"
+  headlamp/plugin/distro-compat: "in-cluster,web,docker-desktop,desktop"
