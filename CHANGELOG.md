@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/portone-io/headlamp-argo-rollouts/compare/v0.3.0...v0.4.0) (2026-07-19)
+
+
+### Features
+
+* custom "Argo Rollouts" sidebar section with per-CRD list views ([#35](https://github.com/portone-io/headlamp-argo-rollouts/issues/35)) ([b2f2c9c](https://github.com/portone-io/headlamp-argo-rollouts/commit/b2f2c9cb2fc18973138be180a8407225699816bd)), closes [#33](https://github.com/portone-io/headlamp-argo-rollouts/issues/33)
+
 ## [0.3.0](https://github.com/portone-io/headlamp-argo-rollouts/compare/v0.2.0...v0.3.0) (2026-07-19)
 
 
