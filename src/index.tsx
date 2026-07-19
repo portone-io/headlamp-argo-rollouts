@@ -1,6 +1,10 @@
-// Adds Strategy / Rollout status / Step / Weight columns to the Rollouts list
-// (registerResourceTableColumnsProcessor on the headlamp-rollouts table).
+// Enriches the generic Rollouts list (registerResourceTableColumnsProcessor on
+// the headlamp-rollouts table) with Strategy / Rollout status / Step / Weight.
 import './RolloutColumns';
+// Adds an "Argo Rollouts" sidebar section with custom list views + routes for
+// the CRD family (Rollouts, Experiments, AnalysisRuns, AnalysisTemplates,
+// ClusterAnalysisTemplates).
+import './sidebar';
 import { registerDetailsViewHeaderAction, registerMapSource } from '@kinvolk/headlamp-plugin/lib';
 import { rolloutMapSource } from './mapSource';
 import RollbackButton from './RollbackButton';
