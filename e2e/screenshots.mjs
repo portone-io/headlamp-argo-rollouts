@@ -1,7 +1,7 @@
 // Captures README screenshots by driving a live Headlamp (with this plugin
 // loaded) against a kind cluster running a sample Rollout. Volatile content
-// (the relative-age "Created" column) is hidden before capture so the PNGs are
-// stable across runs — only real UI changes produce a diff (and thus a PR).
+// (the relative-age "Created" column) is hidden before capture so the images
+// are stable across runs — only real UI changes produce a diff (and thus a PR).
 //
 // Prereqs (see run.sh): Headlamp serving at $HL_URL with the demo-canary Rollout
 // Paused mid-canary. Run: `node screenshots.mjs`.
