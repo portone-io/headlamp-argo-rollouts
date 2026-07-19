@@ -26,6 +26,8 @@ Argo Rollouts are custom resources, and Headlamp's generic custom-resource detai
 actions (not registered detail-view sections), so the entry point is a `registerDetailsViewHeaderAction`; the
 component renders nothing for non-Rollout resources.
 
+![Rollback dialog with the enriched revision history](docs/screenshots/rollback-dialog.png)
+
 ### Progressive-delivery actions (detail page)
 
 A **Rollout actions** menu in the detail header, offering (only when applicable to the current state) the same
@@ -42,6 +44,12 @@ confirmed via a dialog before it runs.
   would 403. Promote / Promote-Full / Abort / Retry additionally patch the `status` subresource (with a fallback
   to the main resource on older CRDs), so an operator needs `patch` on **`rollouts/status`** as well as
   `rollouts`.
+
+![Rollout actions menu](docs/screenshots/rollout-actions.png)
+
+> The screenshots above are regenerated automatically: the [`Screenshots`
+> workflow](.github/workflows/screenshots.yaml) renders the plugin in a real Headlamp against a kind cluster
+> and opens a PR when they change (see [`e2e/`](./e2e)). So they double as a runtime smoke test.
 
 ### Rollouts list columns
 
