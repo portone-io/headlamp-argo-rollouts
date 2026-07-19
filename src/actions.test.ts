@@ -9,6 +9,7 @@ import {
   restartBody,
   resumeBody,
   retryBody,
+  setImagePatch,
 } from './actions';
 
 describe('patch builders', () => {
@@ -30,6 +31,12 @@ describe('patch builders', () => {
     expect(restartBody(new Date('2026-01-02T03:04:05Z'))).toEqual({
       spec: { restartAt: '2026-01-02T03:04:05.000Z' },
     });
+  });
+
+  it('setImagePatch targets a single container index as a JSON Patch', () => {
+    expect(setImagePatch(1, 'nginx:1.27')).toEqual([
+      { op: 'replace', path: '/spec/template/spec/containers/1/image', value: 'nginx:1.27' },
+    ]);
   });
 });
 

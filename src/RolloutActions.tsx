@@ -13,6 +13,7 @@ import {
 import { useState } from 'react';
 import { ACTION_LABEL, isApplicable, RolloutActionId } from './actions';
 import { applyAction } from './actionsApi';
+import { useCanPatchRollout } from './rbac';
 
 // Order the actions are offered in the menu.
 const ACTION_ORDER: RolloutActionId[] = [
@@ -62,7 +63,13 @@ function RolloutActionsMenu(props: { item: any }) {
 
   const namespace = item.metadata?.namespace;
   const name = item.metadata?.name;
+  const allowed = useCanPatchRollout(namespace, name);
   const available = ACTION_ORDER.filter(id => isApplicable(id, item));
+
+  // Hide the whole menu for users who cannot patch the Rollout (would 403).
+  if (allowed === false) {
+    return null;
+  }
 
   function openDialog(id: RolloutActionId) {
     setAnchor(null);
