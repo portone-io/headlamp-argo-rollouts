@@ -9,7 +9,14 @@
 // derivation and is tracked separately. `promoteFull` is included as it is a
 // single unambiguous flag.
 
-export type RolloutActionId = 'promoteFull' | 'abort' | 'retry' | 'restart' | 'pause' | 'resume';
+export type RolloutActionId =
+  | 'promote'
+  | 'promoteFull'
+  | 'abort'
+  | 'retry'
+  | 'restart'
+  | 'pause'
+  | 'resume';
 
 export interface RolloutActionResult {
   success: boolean;
@@ -17,6 +24,7 @@ export interface RolloutActionResult {
 }
 
 export const ACTION_LABEL: Record<RolloutActionId, string> = {
+  promote: 'Promote',
   promoteFull: 'Promote Full',
   abort: 'Abort',
   retry: 'Retry',
@@ -40,6 +48,35 @@ export function retryBody() {
 
 export function promoteFullBody() {
   return { status: { promoteFull: true } };
+}
+
+// Plain promote (advance one canary step). Clearing the pause condition alone is
+// NOT enough: on an indefinite `pause: {}` step the controller just re-adds the
+// pause at the same index. So we also bump `currentStepIndex` past the current
+// step (verified against a live controller). `pauseConditions: null` clears the
+// pause (null removes the field in a merge-patch). For blueGreen / no canary
+// steps there is no step index to advance, so it is omitted.
+export function promoteBody(nextStepIndex?: number) {
+  const status: { pauseConditions: null; currentStepIndex?: number } = {
+    pauseConditions: null,
+  };
+  if (nextStepIndex !== undefined) {
+    status.currentStepIndex = nextStepIndex;
+  }
+  return { status };
+}
+
+// The step index a plain promote should jump to: one past the current canary
+// step, capped at the total. Returns undefined when there are no canary steps
+// (blueGreen), where only the pause is cleared.
+export function promoteNextStepIndex(rollout: any): number | undefined {
+  const { spec, status } = raw(rollout);
+  const steps = spec.strategy?.canary?.steps ?? [];
+  if (steps.length === 0) {
+    return undefined;
+  }
+  const current = status.currentStepIndex ?? 0;
+  return Math.min(current + 1, steps.length);
 }
 
 export function pauseBody() {
@@ -96,6 +133,7 @@ export function isApplicable(id: RolloutActionId, rollout: any): boolean {
         !isAborted(rollout) &&
         (isPaused(rollout) || phase(rollout) === 'Progressing' || phase(rollout) === 'Degraded')
       );
+    case 'promote':
     case 'promoteFull':
       return isPaused(rollout) || phase(rollout) === 'Progressing';
     case 'restart':

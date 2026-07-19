@@ -3,7 +3,9 @@ import {
   abortBody,
   isApplicable,
   pauseBody,
+  promoteBody,
   promoteFullBody,
+  promoteNextStepIndex,
   restartBody,
   resumeBody,
   retryBody,
@@ -14,14 +16,40 @@ describe('patch builders', () => {
     expect(abortBody()).toEqual({ status: { abort: true } });
     expect(retryBody()).toEqual({ status: { abort: false } });
     expect(promoteFullBody()).toEqual({ status: { promoteFull: true } });
+    expect(promoteBody()).toEqual({ status: { pauseConditions: null } });
     expect(pauseBody()).toEqual({ spec: { paused: true } });
     expect(resumeBody()).toEqual({ spec: { paused: false } });
+  });
+
+  it('promoteBody clears the pause and (optionally) advances the step index', () => {
+    expect(JSON.stringify(promoteBody())).toBe('{"status":{"pauseConditions":null}}');
+    expect(promoteBody(2)).toEqual({ status: { pauseConditions: null, currentStepIndex: 2 } });
   });
 
   it('restartBody uses the injected clock as an RFC3339 timestamp', () => {
     expect(restartBody(new Date('2026-01-02T03:04:05Z'))).toEqual({
       spec: { restartAt: '2026-01-02T03:04:05.000Z' },
     });
+  });
+});
+
+describe('promoteNextStepIndex', () => {
+  const canary = (steps: any[], currentStepIndex?: number) => ({
+    spec: { strategy: { canary: { steps } } },
+    status: currentStepIndex === undefined ? {} : { currentStepIndex },
+  });
+
+  it('advances one past the current step, capped at the total', () => {
+    const steps = [{ setWeight: 20 }, { pause: {} }, { setWeight: 40 }, { pause: {} }];
+    expect(promoteNextStepIndex(canary(steps, 1))).toBe(2);
+    expect(promoteNextStepIndex(canary(steps, 0))).toBe(1);
+    expect(promoteNextStepIndex(canary(steps, 4))).toBe(4); // capped at steps.length
+    expect(promoteNextStepIndex(canary(steps))).toBe(1); // no currentStepIndex → 0+1
+  });
+
+  it('returns undefined for blueGreen / no canary steps', () => {
+    expect(promoteNextStepIndex({ spec: { strategy: { blueGreen: {} } }, status: {} })).toBeUndefined();
+    expect(promoteNextStepIndex({ spec: { strategy: { canary: { steps: [] } } }, status: {} })).toBeUndefined();
   });
 });
 
@@ -52,10 +80,13 @@ describe('isApplicable', () => {
     expect(isApplicable('abort', rollout({}, { phase: 'Progressing', abort: true }))).toBe(false);
   });
 
-  it('promoteFull: when paused or progressing', () => {
-    expect(isApplicable('promoteFull', rollout({ paused: true }))).toBe(true);
-    expect(isApplicable('promoteFull', rollout({}, { phase: 'Progressing' }))).toBe(true);
-    expect(isApplicable('promoteFull', rollout({}, { phase: 'Healthy' }))).toBe(false);
+  it('promote / promoteFull: when paused or progressing', () => {
+    for (const id of ['promote', 'promoteFull'] as const) {
+      expect(isApplicable(id, rollout({ paused: true }))).toBe(true);
+      expect(isApplicable(id, rollout({}, { pauseConditions: [{ reason: 'x' }] }))).toBe(true);
+      expect(isApplicable(id, rollout({}, { phase: 'Progressing' }))).toBe(true);
+      expect(isApplicable(id, rollout({}, { phase: 'Healthy' }))).toBe(false);
+    }
   });
 
   it('restart: always', () => {

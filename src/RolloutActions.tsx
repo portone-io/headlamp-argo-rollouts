@@ -16,6 +16,7 @@ import { applyAction } from './actionsApi';
 
 // Order the actions are offered in the menu.
 const ACTION_ORDER: RolloutActionId[] = [
+  'promote',
   'promoteFull',
   'pause',
   'resume',
@@ -26,6 +27,7 @@ const ACTION_ORDER: RolloutActionId[] = [
 
 // Per-action confirmation copy (these mutate a live workload).
 const CONFIRM: Record<RolloutActionId, string> = {
+  promote: 'Promote this Rollout to the next step?',
   promoteFull: 'Skip all remaining steps and promote this Rollout to completion?',
   pause: 'Pause this Rollout? The controller will stop progressing it until resumed.',
   resume: 'Resume this Rollout?',
