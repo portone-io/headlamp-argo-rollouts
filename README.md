@@ -78,6 +78,17 @@ Headlamp. What this plugin does aim to bring in is tracked under the `mvp` / `v1
 > community project, so it will not appear in Headlamp's Plugin Catalog. If it is useful to you, please **fork
 > it** and adapt/maintain it for your own needs. No support or compatibility guarantees are provided.
 
+## Compatibility
+
+Verified against **Headlamp v0.43.0** and built with `@kinvolk/headlamp-plugin`
+`^0.14.0`. The newest Headlamp APIs this plugin relies on are the Map source API
+(`registerMapSource`) and the plugin i18n runtime, so the supported range is
+declared conservatively as **`>=0.43`** in
+[`artifacthub-pkg.yml`](./artifacthub-pkg.yml)
+(`headlamp/plugin/version-compat`); `distro-compat` covers in-cluster, web,
+docker-desktop, and desktop. CI type-checks and builds against both the pinned
+and the latest SDK to catch API drift.
+
 ## Install
 
 Download the tarball from a [GitHub Release](https://github.com/portone-io/headlamp-argo-rollouts/releases)
