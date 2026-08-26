@@ -26,6 +26,26 @@ sources:
         kind: regex/semver
         regex: '^v(\d+\.\d+\.\d+)$'
         pattern: '*'
+conditions:
+  cooldown:
+    name: Release is at least 7 days old
+    kind: shell
+    sourceid: version
+    spec:
+      command: |
+        # Must end on an explicit exit: updatecli appends the source value as a
+        # trailing line, which would otherwise run and set the exit code.
+        set -eu
+        api=https://api.github.com/repos/kubernetes-sigs/headlamp/releases/tags
+        published="$(curl -fsSL -H "Authorization: Bearer ${UPDATECLI_GITHUB_TOKEN}" \
+          "${api}/{{ source "version" }}" | jq -er .published_at)"
+        days=$(( ( $(date -u +%s) - $(date -u -d "$published" +%s) ) / 86400 ))
+        echo "released ${days}d ago"
+        [ "$days" -ge 7 ] && exit 0
+        exit 1
+      environments:
+        - name: PATH
+        - name: UPDATECLI_GITHUB_TOKEN
 targets:
   e2e:
     name: e2e Headlamp image
