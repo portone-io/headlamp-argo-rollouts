@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/portone-io/headlamp-argo-rollouts/compare/v0.4.0...v0.4.1) (2026-08-26)
+
+
+### Bugfixes
+
+* **e2e:** write a screenshot only when its pixels change ([#47](https://github.com/portone-io/headlamp-argo-rollouts/issues/47)) ([7d2812d](https://github.com/portone-io/headlamp-argo-rollouts/commit/7d2812dbc3e045667520d5b6a4aa4bac3181787f))
+
 ## [0.4.0](https://github.com/portone-io/headlamp-argo-rollouts/compare/v0.3.0...v0.4.0) (2026-07-19)
 
 
