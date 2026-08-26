@@ -95,7 +95,7 @@ Headlamp. What this plugin does aim to bring in is tracked under the `mvp` / `v1
 
 ## Compatibility
 
-Verified against **Headlamp v0.43.0** and built with `@kinvolk/headlamp-plugin`
+Verified against **Headlamp v0.45.0** and built with `@kinvolk/headlamp-plugin`
 `^0.14.0`. The newest Headlamp APIs this plugin relies on are the Map source API
 (`registerMapSource`) and the plugin i18n runtime, so the supported range is
 declared conservatively as **`>=0.43`** in

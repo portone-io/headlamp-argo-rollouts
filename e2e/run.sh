@@ -7,7 +7,7 @@ set -euo pipefail
 
 CLUSTER="${CLUSTER:-hl-verify}"
 HL_PORT="${HL_PORT:-4466}"
-HL_IMAGE="${HL_IMAGE:-ghcr.io/headlamp-k8s/headlamp:v0.43.0}"
+HL_IMAGE="${HL_IMAGE:-ghcr.io/headlamp-k8s/headlamp:v0.45.0}"
 HL_URL="http://localhost:${HL_PORT}"
 PW_DEPS="${PW_DEPS:-}" # set to "--with-deps" on Debian/Ubuntu CI runners
 KEEP="${KEEP:-}"
