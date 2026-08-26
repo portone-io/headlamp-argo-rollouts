@@ -1,0 +1,70 @@
+---
+name: Verify against the latest Headlamp release
+scms:
+  default:
+    kind: github
+    spec:
+      owner: portone-io
+      repository: headlamp-argo-rollouts
+      branch: main
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      user: github-actions[bot]
+      email: 41898282+github-actions[bot]@users.noreply.github.com
+      commitmessage:
+        type: chore
+        scope: deps
+        title: 'verify against Headlamp {{ source "version" }}'
+sources:
+  version:
+    name: Latest Headlamp release
+    kind: githubrelease
+    spec:
+      owner: kubernetes-sigs
+      repository: headlamp
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      versionfilter:
+        kind: regex/semver
+        regex: '^v(\d+\.\d+\.\d+)$'
+        pattern: '*'
+targets:
+  e2e:
+    name: e2e Headlamp image
+    kind: file
+    sourceid: version
+    scmid: default
+    spec:
+      file: e2e/run.sh
+      matchpattern: 'ghcr\.io/headlamp-k8s/headlamp:v[0-9]+\.[0-9]+\.[0-9]+'
+      replacepattern: 'ghcr.io/headlamp-k8s/headlamp:{{ source "version" }}'
+  readme:
+    name: README verified-against claim
+    kind: file
+    sourceid: version
+    scmid: default
+    spec:
+      file: README.md
+      matchpattern: 'Verified against \*\*Headlamp v[0-9]+\.[0-9]+\.[0-9]+\*\*'
+      replacepattern: 'Verified against **Headlamp {{ source "version" }}**'
+  artifacthub:
+    name: Artifact Hub verified-against note
+    kind: file
+    sourceid: version
+    scmid: default
+    spec:
+      file: artifacthub-pkg.yml
+      matchpattern: 'Verified against Headlamp v[0-9]+\.[0-9]+\.[0-9]+'
+      replacepattern: 'Verified against Headlamp {{ source "version" }}'
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    spec:
+      title: 'chore(deps): verify against Headlamp {{ source "version" }}'
+      description: |
+        The `version-compat` floor in `artifacthub-pkg.yml` and the `>=0.43` mention in the README are
+        deliberately left alone: the floor is the oldest tested Headlamp, not the newest.
+
+        Run the Screenshots workflow on this branch before merging. It is the runtime smoke test that
+        makes the "verified against" claim true, and it only runs on pushes to `main` otherwise.
+      labels:
+        - dependencies

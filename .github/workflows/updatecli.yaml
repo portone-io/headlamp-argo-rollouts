@@ -1,0 +1,27 @@
+---
+name: Updatecli
+
+on:
+  schedule:
+    - cron: "30 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  updatecli:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: updatecli/updatecli-action@41b9c8d707830a9daebaeaa84c1b62d60b779564  # v3.6.0
+        with:
+          version: 0.120.1
+      - run: updatecli pipeline apply --config .updatecli/ --validate-schema
+        env:
+          UPDATECLI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
