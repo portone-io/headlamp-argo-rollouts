@@ -1,12 +1,15 @@
 // Captures README screenshots by driving a live Headlamp (with this plugin
 // loaded) against a kind cluster running a sample Rollout. Volatile content
-// (the relative-age "Created" column) is hidden before capture so the images
-// are stable across runs — only real UI changes produce a diff (and thus a PR).
+// (the relative-age "Created" column) is hidden before capture, and a capture
+// is written only when it differs from the committed image by at least one
+// perceptible pixel, so only real UI changes produce a diff (and thus a PR).
 //
 // Prereqs (see run.sh): Headlamp serving at $HL_URL with the demo-canary Rollout
 // Paused mid-canary. Run: `node screenshots.mjs`.
 import { chromium } from 'playwright';
-import { mkdir } from 'node:fs/promises';
+import pixelmatch from 'pixelmatch';
+import { PNG } from 'pngjs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,6 +40,38 @@ const STABILIZE_CSS = `
   .MuiDialog-paper table tr > *:last-child { visibility: hidden !important; }
 `;
 
+// PNG output is not byte-reproducible: two runs of an unchanged UI differ by a
+// few hundred bytes of font rasterization, which is enough for git to see a
+// change and for the workflow to open a PR. Compare pixels instead.
+async function writeIfChanged(path, buffer) {
+  let committed;
+  try {
+    committed = PNG.sync.read(await readFile(path));
+  } catch {
+    await writeFile(path, buffer);
+    console.log(`${path}: written (no committed image)`);
+    return;
+  }
+
+  const captured = PNG.sync.read(buffer);
+  if (captured.width !== committed.width || captured.height !== committed.height) {
+    await writeFile(path, buffer);
+    console.log(`${path}: written (${committed.width}x${committed.height} -> ${captured.width}x${captured.height})`);
+    return;
+  }
+
+  const diff = pixelmatch(committed.data, captured.data, null, captured.width, captured.height, {
+    threshold: 0.1,
+  });
+  if (diff === 0) {
+    console.log(`${path}: unchanged`);
+    return;
+  }
+
+  await writeFile(path, buffer);
+  console.log(`${path}: written (${diff} pixels changed)`);
+}
+
 async function main() {
   await mkdir(OUT_DIR, { recursive: true });
   const browser = await chromium.launch();
@@ -56,7 +91,7 @@ async function main() {
   await dialog.getByText('canary', { exact: true }).waitFor({ timeout: 30_000 });
   await dialog.getByText('stable', { exact: true }).waitFor({ timeout: 30_000 });
   const style = await page.addStyleTag({ content: STABILIZE_CSS });
-  await dialog.screenshot({ path: `${OUT_DIR}/rollback-dialog.png` });
+  await writeIfChanged(`${OUT_DIR}/rollback-dialog.png`, await dialog.screenshot());
   // Remove the stabilization styles so the (now-hidden) app is interactive again.
   await style.evaluate(el => el.remove());
 
@@ -68,10 +103,10 @@ async function main() {
   await page.getByRole('button', { name: 'Rollout actions' }).click();
   const menu = page.locator('.MuiMenu-paper');
   await menu.getByText('Promote', { exact: true }).waitFor({ timeout: 15_000 });
-  await menu.screenshot({ path: `${OUT_DIR}/rollout-actions.png` });
+  await writeIfChanged(`${OUT_DIR}/rollout-actions.png`, await menu.screenshot());
 
   await browser.close();
-  console.log(`Wrote screenshots to ${OUT_DIR}`);
+  console.log(`Screenshots up to date in ${OUT_DIR}`);
 }
 
 main().catch(err => {
