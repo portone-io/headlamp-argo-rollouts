@@ -21,7 +21,7 @@ annotations:
   headlamp/plugin/archive-url: >-
     https://github.com/portone-io/headlamp-argo-rollouts/releases/download/v0.2.0/headlamp-argo-rollouts-0.2.0.tar.gz
   headlamp/plugin/archive-checksum: "sha256:<filled-in-at-publish-time>"
-  # Verified against Headlamp v0.43.0 (the PortOne dev deployment). The Map
+  # Verified against Headlamp v0.45.0 (the PortOne dev deployment). The Map
   # source API (registerMapSource) and the plugin i18n runtime are the newest
   # Headlamp APIs this plugin depends on, so the floor is set conservatively to
   # the tested version rather than guessed lower.
