@@ -7,6 +7,8 @@
     "screenshots": "node screenshots.mjs"
   },
   "devDependencies": {
-    "playwright": "^1.49.0"
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0"
   }
 }
