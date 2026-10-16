@@ -12,8 +12,8 @@ displayName: Argo Rollouts
 createdAt: "2026-07-19T00:00:00Z"
 description: >-
   Argo Rollouts support for Headlamp: revision history + rollback, progressive-
-  delivery actions (promote/pause/abort/…), Set Image, Rollouts list columns, and
-  a Rollout→ReplicaSet hierarchy in the Map view.
+  delivery actions (promote/pause/abort/…), Set Image, an Argo Rollouts sidebar
+  section with list views, and a Rollout→ReplicaSet hierarchy in the Map view.
 # logoURL: filled in once logo.png lands (tracked in issue #7).
 annotations:
   # The tarball URL + checksum are per-release; the release workflow attaches
