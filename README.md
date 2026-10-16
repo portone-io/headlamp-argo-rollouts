@@ -58,6 +58,14 @@ On the Rollouts list page, adds **Strategy**, **Rollout status** (a colored heal
 progress, like the official dashboard's list. Values come from a client-side port of Argo's `RolloutInfo`
 derivation (`src/rolloutInfo.ts`); these columns need only the Rollout object, so no extra per-row fetches.
 
+### Argo Rollouts sidebar section
+
+Adds a top-level **Argo Rollouts** sidebar section with a list view per CRD: **Rollouts** (with the status
+columns above), **Experiments** and **AnalysisRuns** (with a phase chip), and **AnalysisTemplates** and
+**ClusterAnalysisTemplates** (with a metric count). Names link to Headlamp's generic custom-resource detail page,
+where the rollback and actions above render. The built-in Custom Resources entries for these CRDs stay in place,
+since the `argoproj.io` group is shared with Argo CD and Argo Workflows.
+
 ### Map view hierarchy
 
 Adds a Rollout node and a Rollout→ReplicaSet ownership edge via `registerMapSource` so that, in the Map (graph)
