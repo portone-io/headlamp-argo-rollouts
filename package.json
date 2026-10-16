@@ -1,7 +1,7 @@
 {
   "name": "headlamp-argo-rollouts",
   "version": "0.4.0",
-  "description": "Argo Rollouts support for Headlamp: revision history + rollback on the detail page, and a Rollout→ReplicaSet ownership hierarchy in the Map view",
+  "description": "Argo Rollouts support for Headlamp: revision history + rollback, progressive-delivery actions (promote/pause/abort/…), Set Image, an Argo Rollouts sidebar section with list views, and a Rollout→ReplicaSet hierarchy in the Map view",
   "license": "MIT",
   "homepage": "https://github.com/portone-io/headlamp-argo-rollouts#readme",
   "repository": {
