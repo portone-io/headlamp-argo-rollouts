@@ -6,7 +6,7 @@
 # publishes: the compatibility annotations are filled in, and the release
 # workflow (release.yaml) produces the tarball whose URL + SHA256 go into
 # archive-url / archive-checksum at publish time.
-version: 0.2.0
+version: 0.4.0  # x-release-please-version
 name: headlamp-argo-rollouts
 displayName: Argo Rollouts
 createdAt: "2026-07-19T00:00:00Z"
@@ -18,8 +18,12 @@ description: >-
 annotations:
   # The tarball URL + checksum are per-release; the release workflow attaches
   # both to each GitHub Release (the SHA256 is printed in the release notes).
-  headlamp/plugin/archive-url: >-
-    https://github.com/portone-io/headlamp-argo-rollouts/releases/download/v0.2.0/headlamp-argo-rollouts-0.2.0.tar.gz
+  # Split so each line holds one version: release-please's generic updater
+  # replaces only the first match per line.
+  # x-release-please-start-version
+  headlamp/plugin/archive-url: "https://github.com/portone-io/headlamp-argo-rollouts/releases/download/v0.4.0/\
+    headlamp-argo-rollouts-0.4.0.tar.gz"
+  # x-release-please-end
   headlamp/plugin/archive-checksum: "sha256:<filled-in-at-publish-time>"
   # Verified against Headlamp v0.45.0 (the PortOne dev deployment). The Map
   # source API (registerMapSource) and the plugin i18n runtime are the newest

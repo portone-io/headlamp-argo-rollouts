@@ -111,7 +111,8 @@ and extract it into your Headlamp plugins directory so the layout is
 `<plugins-dir>/headlamp-argo-rollouts/main.js`:
 
 ```bash
-curl -sSL https://github.com/portone-io/headlamp-argo-rollouts/releases/download/v0.1.0/headlamp-argo-rollouts-0.1.0.tar.gz \
+VERSION=0.4.0 # x-release-please-version
+curl -sSL "https://github.com/portone-io/headlamp-argo-rollouts/releases/download/v${VERSION}/headlamp-argo-rollouts-${VERSION}.tar.gz" \
   | tar -xz -C <plugins-dir>
 ```
 

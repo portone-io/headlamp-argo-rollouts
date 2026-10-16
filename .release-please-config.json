@@ -4,6 +4,10 @@
     ".": {
       "release-type": "node",
       "include-component-in-tag": false,
+      "extra-files": [
+        "README.md",
+        { "type": "generic", "path": "artifacthub-pkg.yml" }
+      ],
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
         { "type": "fix", "section": "Bugfixes" },
