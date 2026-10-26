@@ -25,7 +25,7 @@ annotations:
     headlamp-argo-rollouts-0.4.0.tar.gz"
   # x-release-please-end
   headlamp/plugin/archive-checksum: "sha256:<filled-in-at-publish-time>"
-  # Verified against Headlamp v0.45.0 (the PortOne dev deployment). The Map
+  # Verified against Headlamp v0.46.0 (the PortOne dev deployment). The Map
   # source API (registerMapSource) and the plugin i18n runtime are the newest
   # Headlamp APIs this plugin depends on, so the floor is set conservatively to
   # the tested version rather than guessed lower.
